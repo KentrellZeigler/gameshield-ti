@@ -1,0 +1,26 @@
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# macOS files
+.DS_Store
+
+# Local data files
+data/*
+!data/.gitkeep
+
+# Editor settings
+.vscode/
+
