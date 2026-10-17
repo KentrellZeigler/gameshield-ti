@@ -532,10 +532,16 @@ try:
             )
 
 
+
 except Exception:
-    st.error(
-        "Unable to retrieve data from PostgreSQL. "
-        "Verify that the database server is running "
-        "and check the application terminal for errors."
+    import logging
+
+    logging.exception(
+        "GameShield TI encountered an application error."
     )
-    st.exception(__import__("sys").exc_info()[1])
+
+    st.error(
+        "An application error occurred. "
+        "Please check the application logs "
+        "or contact the administrator."
+    )
