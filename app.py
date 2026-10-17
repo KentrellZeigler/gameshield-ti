@@ -11,6 +11,12 @@ from src.database.queries import (
 
 from src.analyzers.correlation import correlate_ip_indicators
 
+from src.analyzers.case_generator import (
+    get_automated_cases,
+    get_case_evidence,
+)
+
+
 st.set_page_config(
     page_title="GameShield TI",
     page_icon="🛡️",
@@ -142,9 +148,13 @@ try:
         else:
             st.info("No matching indicators found.")
 
+    
     elif page == "Investigations":
 
         st.header("Investigation Cases")
+
+        # SECTION 1: Existing investigations
+        st.subheader("Existing Investigations")
 
         investigations = get_investigations()
 
@@ -163,6 +173,79 @@ try:
 
         else:
             st.info("No investigations have been created.")
+
+        # SECTION 2: Automatically generated cases
+        st.divider()
+
+        st.subheader("Automatically Generated Cases")
+
+        auto_cases = get_automated_cases()
+
+        if auto_cases:
+            cases_df = pd.DataFrame(auto_cases)
+
+            st.metric(
+                "Automated Cases",
+                len(cases_df)
+            )
+
+            st.dataframe(
+                cases_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            st.divider()
+
+            st.subheader("Investigation Evidence Viewer")
+
+            case_options = {
+                f"Case {case['case_id']} — {case['title']}":
+                case["case_id"]
+                for case in auto_cases
+            }
+
+            selected_label = st.selectbox(
+                "Select an investigation",
+                options=list(case_options.keys()),
+            )
+
+            selected_case_id = case_options[selected_label]
+
+            evidence = get_case_evidence(selected_case_id)
+
+            if evidence:
+                evidence_df = pd.DataFrame(evidence)
+
+                st.metric(
+                    "Evidence Records",
+                    len(evidence_df)
+                )
+
+                st.dataframe(
+                    evidence_df,
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+                st.info(
+                    "Evidence identifies an indicator match. "
+                    "It does not independently prove "
+                    "malicious activity."
+                )
+
+            else:
+                st.info(
+                    "No evidence has been attached "
+                    "to this investigation."
+                )
+
+
+        else:
+            st.info(
+                "No automatically generated cases found."
+            )
+
 
 except Exception:
     st.error(
