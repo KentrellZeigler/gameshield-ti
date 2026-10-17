@@ -139,6 +139,7 @@ def get_case_evidence(case_id, conn=None):
         SELECT
             ce.evidence_id,
             ce.case_id,
+            ce.indicator_id,
             ce.match_type,
             ce.discovered_at,
             e.event_id,
