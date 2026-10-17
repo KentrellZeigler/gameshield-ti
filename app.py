@@ -11,6 +11,8 @@ from src.database.queries import (
 
 from src.analyzers.correlation import correlate_ip_indicators
 
+from src.analyzers.case_scoring import get_scored_cases
+
 from src.analyzers.case_generator import (
     get_automated_cases,
     get_case_evidence,
@@ -245,6 +247,72 @@ try:
             st.info(
                 "No automatically generated cases found."
             )
+
+        st.divider()
+
+        st.subheader("Investigation Priority Analysis")
+
+        st.caption(
+            "Calculated review priorities based on "
+            "the evidence currently attached to each case."
+        )
+
+        scored_cases = get_scored_cases()
+
+        if scored_cases:
+            summary = pd.DataFrame([
+                {
+                    "Case ID": case["case_id"],
+                    "Title": case["title"],
+                    "Assigned Priority": case["priority"],
+                    "Recommended Priority":
+                        case["recommended_priority"],
+                    "Score": case["calculated_score"],
+                    "Evidence Records": case["evidence_count"],
+                    "Sources": case["source_count"],
+                }
+                for case in scored_cases
+            ])
+
+            st.dataframe(
+                summary,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            st.subheader("Scoring Explanation")
+
+            selected_case = st.selectbox(
+                "Choose a case to review its score",
+                options=scored_cases,
+                format_func=lambda case:
+                    f"Case {case['case_id']} - {case['title']}",
+                key="priority_case_selector",
+            )
+
+            st.metric(
+                "Calculated Review Score",
+                selected_case["calculated_score"],
+            )
+
+            st.write(
+                "Recommended priority:",
+                selected_case["recommended_priority"],
+            )
+
+            st.write("Reasons:")
+
+            for reason in selected_case["scoring_reasons"]:
+                st.write(f"- {reason}")
+
+            st.info(
+                "This is a rule-based review recommendation, "
+                "not a verified threat severity assessment. "
+                "Existing case priorities are unchanged."
+            )
+
+        else:
+            st.info("No automated cases available to score.")
 
 
 except Exception:
