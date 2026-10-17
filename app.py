@@ -9,6 +9,8 @@ from src.database.queries import (
     get_investigations,
 )
 
+from src.analyzers.correlation import correlate_ip_indicators
+
 st.set_page_config(
     page_title="GameShield TI",
     page_icon="🛡️",
@@ -27,14 +29,17 @@ st.info(
 
 st.sidebar.title("Navigation")
 
+
 page = st.sidebar.radio(
     "Select a page",
     [
         "Overview",
         "Threat Intelligence",
         "Investigations",
+        "Correlations",
     ],
 )
+
 
 if st.sidebar.button("Refresh Data"):
     st.rerun()
@@ -104,6 +109,38 @@ try:
         else:
             st.info("No intelligence records available.")
 
+
+    
+
+    elif page == "Correlations":
+
+        st.header("Threat Intelligence Correlations")
+
+        st.caption(
+            "Matching intelligence indicators against "
+            "simulated multiplayer security events."
+        )
+
+        matches = correlate_ip_indicators()
+
+        if matches:
+            df = pd.DataFrame(matches)
+
+            st.metric("Total Matches", len(df))
+
+            st.dataframe(
+                df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            st.warning(
+                "These matches represent investigative leads. "
+                "Synthetic events do not indicate real malicious activity."
+            )
+
+        else:
+            st.info("No matching indicators found.")
 
     elif page == "Investigations":
 
