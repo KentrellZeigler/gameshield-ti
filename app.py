@@ -17,7 +17,13 @@ st.set_page_config(
 
 st.title("🛡️ GameShield TI")
 st.caption("Gaming Threat Intelligence Platform")
-st.warning("DEMO ENVIRONMENT — All threat data is synthetic.")
+
+st.info(
+    "DEVELOPMENT ENVIRONMENT — Includes synthetic "
+    "investigation data and externally sourced OTX indicators. "
+    "Listed indicators are not independently verified."
+)
+
 
 st.sidebar.title("Navigation")
 
