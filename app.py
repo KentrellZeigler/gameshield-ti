@@ -19,6 +19,13 @@ from src.analyzers.case_generator import (
 )
 
 
+from src.analyzers.case_management import (
+    update_case,
+    add_case_note,
+    get_case_notes,
+)
+
+
 st.set_page_config(
     page_title="GameShield TI",
     page_icon="🛡️",
@@ -313,6 +320,155 @@ try:
 
         else:
             st.info("No automated cases available to score.")
+
+
+        st.divider()
+        st.subheader("Analyst Case Management")
+
+        st.caption(
+            "Update investigation status, assign priority, "
+            "and document investigative findings."
+        )
+
+        if auto_cases:
+
+            case_lookup = {
+                case["case_id"]: case
+                for case in auto_cases
+            }
+
+            selected_id = st.selectbox(
+                "Select a case to manage",
+                options=list(case_lookup.keys()),
+                format_func=lambda case_id:
+                    f"Case {case_id} - "
+                    f"{case_lookup[case_id]['title']}",
+                key="management_case_selector",
+            )
+
+            current_case = case_lookup[selected_id]
+
+            st.markdown("#### Update Investigation")
+
+            with st.form(
+                f"update_case_form_{selected_id}"
+            ):
+
+                status = st.selectbox(
+                    "Investigation Status",
+                    [
+                        "Open",
+                        "In Progress",
+                        "Closed",
+                    ],
+                    index=[
+                        "Open",
+                        "In Progress",
+                        "Closed",
+                    ].index(current_case["status"]),
+                )
+
+                priority = st.selectbox(
+                    "Assigned Priority",
+                    [
+                        "Low",
+                        "Medium",
+                        "High",
+                        "Critical",
+                    ],
+                    index=[
+                        "Low",
+                        "Medium",
+                        "High",
+                        "Critical",
+                    ].index(current_case["priority"]),
+                )
+
+                save_changes = st.form_submit_button(
+                    "Save Investigation Changes"
+                )
+
+            if save_changes:
+                updated = update_case(
+                    selected_id,
+                    status,
+                    priority,
+                )
+
+                if updated:
+                    st.success(
+                        "Investigation updated successfully."
+                    )
+                    st.rerun()
+                else:
+                    st.error("Investigation not found.")
+
+            st.divider()
+            st.markdown("#### Add Investigation Note")
+
+            with st.form(
+                f"case_note_form_{selected_id}",
+                clear_on_submit=True,
+            ):
+
+                author = st.text_input(
+                    "Analyst Name",
+                    max_chars=100,
+                )
+
+                note_text = st.text_area(
+                    "Investigation Note",
+                    height=150,
+                    placeholder=(
+                        "Document your investigation "
+                        "findings and next steps..."
+                    ),
+                )
+
+                save_note = st.form_submit_button(
+                    "Save Investigation Note"
+                )
+
+            if save_note:
+                try:
+                    add_case_note(
+                        selected_id,
+                        author,
+                        note_text,
+                    )
+
+                    st.success(
+                        "Investigation note saved."
+                    )
+                    st.rerun()
+
+                except ValueError as error:
+                    st.error(str(error))
+
+            st.divider()
+            st.markdown("#### Investigation Notes History")
+
+            notes = get_case_notes(selected_id)
+
+            if notes:
+                notes_df = pd.DataFrame(notes)
+
+                st.dataframe(
+                    notes_df,
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+            else:
+                st.info(
+                    "No notes have been recorded "
+                    "for this investigation."
+                )
+
+        else:
+            st.info(
+                "No automated cases available for management."
+            )
 
 
 except Exception:
