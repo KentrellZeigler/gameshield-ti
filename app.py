@@ -23,6 +23,11 @@ from src.analyzers.case_management import (
     update_case,
     add_case_note,
     get_case_notes,
+    get_case_audit_history,
+)
+
+from src.reports.report_generator import (
+    generate_case_report,
 )
 
 
@@ -464,6 +469,62 @@ try:
                     "No notes have been recorded "
                     "for this investigation."
                 )
+
+            # ============================================
+            # SECTION 6: AUDIT HISTORY
+            # ============================================
+
+            st.divider()
+
+            st.subheader("Investigation Audit History")
+
+            audit_history = get_case_audit_history(
+                selected_id
+            )
+
+            if audit_history:
+                audit_df = pd.DataFrame(audit_history)
+
+                st.dataframe(
+                    audit_df,
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+                st.caption(
+                    "Audit records show changes recorded "
+                    "since logging was introduced."
+                )
+
+            else:
+                st.info(
+                    "No audit history has been recorded "
+                    "for this investigation."
+                )
+
+            st.divider()
+
+            st.subheader("Investigation Report")
+
+            report_text = generate_case_report(
+                selected_id
+            )
+
+            st.download_button(
+                label="Download Investigation Report",
+                data=report_text,
+                file_name=(
+                    f"gameshield_case_{selected_id}.md"
+                ),
+                mime="text/markdown",
+                key=f"download_report_{selected_id}",
+            )
+
+            st.caption(
+                "The report includes case details, "
+                "supporting evidence, analyst notes, "
+                "review scoring, and audit history."
+            )
 
         else:
             st.info(
